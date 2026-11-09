@@ -7,6 +7,7 @@ use App\Repository\EventRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -33,4 +34,17 @@ final class ValidateController extends AbstractController
 
         return $this->redirectToRoute('app_validate');
     }
+    #[Route('/admin/validate/{id}/refuse', name: 'app_admin_refuse', methods: ['POST'])]
+    #[IsGranted('ROLE_ADMIN')]
+    public function refuse(Event $event, Request $request, EntityManagerInterface $entityManager): Response
+{
+        $title = $event->getTitle();
+    
+        $entityManager->remove($event);
+        $entityManager->flush();
+
+        $this->addFlash('success', sprintf('L\'événement « %s » a été refusé.', $title));
+
+        return $this->redirect($request->headers->get('referer'));
+}
 }
